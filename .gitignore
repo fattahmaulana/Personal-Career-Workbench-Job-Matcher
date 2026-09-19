@@ -1,0 +1,26 @@
+# Python & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Data pribadi & database lokal (PENTING: Jangan commit data pribadi ke GitHub)
+profile.json
+job_matches.json
+applications.db
+*.db
+*.sqlite3
+
+# Environment variables & API keys
+.env
+.env.local
+
+# Temp & IDE
+.vscode/
+.idea/
+*.tmp

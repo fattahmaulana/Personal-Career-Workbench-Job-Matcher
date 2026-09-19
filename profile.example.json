@@ -1,0 +1,68 @@
+{
+  "personal": {
+    "name": "Nama Lengkap",
+    "email": "nama@email.com",
+    "phone": "+628123456789",
+    "location": "Indonesia",
+    "links": [
+      "https://linkedin.com/in/username",
+      "https://github.com/username"
+    ]
+  },
+  "target_role": "Backend Developer",
+  "preferences": {
+    "locations": [
+      "Jakarta",
+      "Remote"
+    ],
+    "work_type": "remote",
+    "salary_expectation": "Rp 10.000.000 - Rp 15.000.000"
+  },
+  "deal_breakers": [
+    "Wajib lembur tanpa kompensasi",
+    "Onsite 100% jika melamar remote"
+  ],
+  "languages": [
+    {
+      "language": "Indonesian",
+      "level": "native"
+    },
+    {
+      "language": "English",
+      "level": "conversational"
+    }
+  ],
+  "experience": [
+    {
+      "company": "Contoh Perusahaan",
+      "position": "Junior Developer",
+      "duration": "2023 - 2024",
+      "responsibilities": [
+        "Membangun REST API",
+        "Optimasi query database"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "institution": "Universitas Contoh",
+      "degree": "S1",
+      "field": "Teknik Informatika",
+      "year": "2023"
+    }
+  ],
+  "skills": {
+    "technical": [
+      "python",
+      "fastapi",
+      "postgresql",
+      "git",
+      "docker"
+    ],
+    "soft": [
+      "Problem Solving",
+      "Komunikasi Tim"
+    ]
+  },
+  "certifications": []
+}

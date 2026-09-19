@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KarierKita - Workbench Pencarian Kerja & Auto-Apply</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fffbeb',
+              100: '#fef3c7',
+              200: '#fde68a',
+              500: '#f59e0b',
+              600: '#d97706',
+              700: '#b45309',
+            },
+            surface: {
+              base: '#0c1017',
+              card: '#131924',
+              elevated: '#1a2332',
+              hover: '#202b3d',
+              border: '#232f44',
+              borderHover: '#334360'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background-color: #0c1017;
+      color: #e2e8f0;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0c1017; }
+    ::-webkit-scrollbar-thumb { background: #232f44; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334360; }
+  </style>
+</head>
+<body class="bg-surface-base text-slate-200 min-h-screen flex flex-col antialiased selection:bg-amber-500/20 selection:text-amber-200">
+
+  <!-- Header / Top Bar -->
+  <header class="border-b border-surface-border bg-surface-base/90 sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-3 self-start sm:self-center">
+        <div class="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center font-black text-slate-950 shadow-md shadow-amber-500/20 text-sm">
+          KK
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-sm tracking-tight text-white">KarierKita</h1>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-elevated text-amber-400 border border-amber-500/20">Lokal & Gratis</span>
+          </div>
+          <p class="text-[11px] text-slate-400">Personal Career Workbench & Job Matcher</p>
+        </div>
+      </div>
+
+      <nav class="flex items-center gap-1.5 p-1 bg-surface-card rounded-xl border border-surface-border w-full sm:w-auto justify-center">
+        <button onclick="switchTab('setup')" id="tab-btn-setup" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-amber-500 text-slate-950 shadow-sm">
+          1. Profil Saya
+        </button>
+        <button onclick="switchTab('scrape')" id="tab-btn-scrape" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-surface-elevated">
+          2. Cari Lowongan
+        </button>
+        <button onclick="switchTab('apply')" id="tab-btn-apply" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-surface-elevated">
+          3. Tracker Lamaran
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="hidden fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold transition-all max-w-sm flex items-center gap-2 border"></div>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full">
+
+    <!-- ================= TAB 1: Profil Saya ================= -->
+    <section id="tab-setup" class="space-y-6">
+      <div class="bg-surface-card border border-surface-border rounded-2xl p-6 sm:p-7 shadow-sm">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 pb-6 border-b border-surface-border">
+          <div>
+            <h2 class="text-lg font-bold text-white tracking-tight">Profil & Preferensi Karier</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Sumber data tunggal untuk analisis kecocokan lowongan kerja dan generator surat lamaran.</p>
+          </div>
+          <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+            <button type="button" onclick="openUploadModal()" class="px-3.5 py-2 bg-surface-elevated hover:bg-surface-hover border border-surface-border text-xs font-medium text-slate-200 rounded-xl transition-colors flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              Upload CV (PDF)
+            </button>
+            <button type="button" onclick="openPasteModal()" class="px-3.5 py-2 bg-surface-elevated hover:bg-surface-hover border border-surface-border text-xs font-medium text-slate-200 rounded-xl transition-colors flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              Paste Teks CV
+            </button>
+            <button type="button" onclick="saveProfile()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl transition-colors shadow-sm flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              Simpan Profil
+            </button>
+          </div>
+        </div>
+
+        <form id="profile-form" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Data Pribadi -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+              <span>👤</span> Data Pribadi & Kontak
+            </h3>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Nama Lengkap *</label>
+              <input type="text" id="prof-name" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3.5 py-2 text-xs text-white focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" required placeholder="Contoh: Budi Santoso">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Email *</label>
+              <input type="email" id="prof-email" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3.5 py-2 text-xs text-white focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" required placeholder="nama@email.com">
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Telepon / WhatsApp</label>
+                <input type="text" id="prof-phone" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3.5 py-2 text-xs text-white focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" placeholder="+628123456789">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Lokasi Domisili</label>
+                <input type="text" id="prof-location" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3.5 py-2 text-xs text-white focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" placeholder="Semarang / Jakarta / Indonesia">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Tautan Portofolio / GitHub / LinkedIn (Pisahkan koma)</label>
+              <input type="text" id="prof-links" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3.5 py-2 text-xs text-white focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" placeholder="https://github.com/..., https://linkedin.com/in/...">
+            </div>
+          </div>
+
+          <!-- Target & Preferensi -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+              <span>🎯</span> Target & Preferensi Kerja
+            </h3>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Target Posisi Pekerjaan *</label>
+              <input type="text" id="prof-target-role" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3.5 py-2 text-xs text-white focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" required placeholder="Web Developer, Backend Developer">
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Tipe Kerja</label>
+                <select id="prof-work-type" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3.5 py-2 text-xs text-white focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500">
+                  <option value="remote">Remote (Kerja Jarak Jauh)</option>
+                  <option value="hybrid">Hybrid</option>
+                  <option value="onsite">Onsite (WFO)</option>
+                  <option value="any">Bebas / Fleksibel</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Ekspektasi Gaji</label>
+                <input type="text" id="prof-salary" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3.5 py-2 text-xs text-white focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" placeholder="Rp 8.000.000 - Rp 15.000.000">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Target Lokasi / Kota (Pisahkan koma)</label>
+              <input type="text" id="prof-pref-locs" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3.5 py-2 text-xs text-white focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" placeholder="Semarang, Jakarta, Remote">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Deal-Breakers (Otomatis ditolak jika lowongan mengandung ini)</label>
+              <input type="text" id="prof-deal-breakers" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3.5 py-2 text-xs text-white focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" placeholder="Wajib lembur, Onsite 100%">
+            </div>
+          </div>
+
+          <!-- Skill & Bahasa -->
+          <div class="space-y-4 md:col-span-2 pt-4 border-t border-surface-border">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+              <span>⚡</span> Keahlian & Bahasa
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Skill Teknis (Pisahkan koma) *</label>
+                <textarea id="prof-tech-skills" rows="3" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3.5 py-2 text-xs text-white focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 leading-relaxed" placeholder="python, javascript, react, mysql, git, html, css"></textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Skill Non-Teknis / Soft Skills</label>
+                <textarea id="prof-soft-skills" rows="3" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3.5 py-2 text-xs text-white focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 leading-relaxed" placeholder="Problem Solving, Komunikasi, Manajemen Waktu"></textarea>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Bahasa yang Dikuasai (Format: Bahasa:Level, contoh: Indonesian:native, English:conversational)</label>
+              <input type="text" id="prof-languages" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3.5 py-2 text-xs text-white focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" placeholder="Indonesian:native, English:conversational">
+            </div>
+          </div>
+
+          <!-- Pengalaman Kerja & Pendidikan -->
+          <div class="space-y-6 md:col-span-2 pt-4 border-t border-surface-border">
+            <!-- Pengalaman Kerja -->
+            <div>
+              <div class="flex justify-between items-center mb-2.5">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                  <span>💼</span> Pengalaman Kerja
+                </h3>
+                <button type="button" onclick="addExperienceRow()" class="px-3 py-1.5 bg-surface-elevated hover:bg-surface-hover border border-surface-border text-xs rounded-lg text-slate-200 font-medium transition-colors">
+                  + Tambah Pengalaman
+                </button>
+              </div>
+              <div id="experience-list" class="space-y-3"></div>
+            </div>
+
+            <!-- Pendidikan -->
+            <div>
+              <div class="flex justify-between items-center mb-2.5">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                  <span>🎓</span> Pendidikan
+                </h3>
+                <button type="button" onclick="addEducationRow()" class="px-3 py-1.5 bg-surface-elevated hover:bg-surface-hover border border-surface-border text-xs rounded-lg text-slate-200 font-medium transition-colors">
+                  + Tambah Pendidikan
+                </button>
+              </div>
+              <div id="education-list" class="space-y-3"></div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ================= TAB 2: Cari Lowongan ================= -->
+    <section id="tab-scrape" class="hidden space-y-6">
+      <div class="bg-surface-card border border-surface-border rounded-2xl p-6 sm:p-7 shadow-sm">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-white tracking-tight">Eksplorasi Lowongan Kerja</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Scraping lowongan dari LinkedIn & Jobstreet dengan evaluasi otomatis kesesuaian profil.</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="openManualJobModal()" class="px-3.5 py-2 bg-surface-elevated hover:bg-surface-hover border border-surface-border text-xs font-semibold rounded-xl text-slate-200 transition-colors">
+              + Input Manual
+            </button>
+            <button id="scrape-btn" onclick="runScrape()" class="px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-all flex items-center gap-2 shadow-sm">
+              <span id="scrape-spinner" class="hidden animate-spin">⭮</span>
+              Cari Lowongan Baru
+            </button>
+          </div>
+        </div>
+
+        <!-- Scraping Banner / Notices -->
+        <div id="scrape-status-box" class="hidden mt-4 p-4 rounded-xl bg-surface-elevated border border-surface-border text-xs text-slate-300"></div>
+
+        <!-- Filter & Stats -->
+        <div class="mt-6 flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-surface-border">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs text-slate-400 mr-1">Filter:</span>
+            <button onclick="filterMatches('all')" id="flt-all" class="px-3 py-1 bg-amber-500 text-slate-950 text-xs rounded-full font-bold">Semua</button>
+            <button onclick="filterMatches('eligible')" id="flt-eligible" class="px-3 py-1 bg-surface-elevated text-slate-300 hover:bg-surface-hover text-xs rounded-full font-medium border border-surface-border">Lolos Kriteria</button>
+            <button onclick="filterMatches('rejected')" id="flt-rejected" class="px-3 py-1 bg-surface-elevated text-slate-300 hover:bg-surface-hover text-xs rounded-full font-medium border border-surface-border">Tidak Lolos</button>
+          </div>
+          <div id="match-counter" class="text-xs text-slate-400 font-medium">Total: 0 lowongan</div>
+        </div>
+
+        <!-- Job Cards Container -->
+        <div id="jobs-container" class="mt-4 grid grid-cols-1 gap-3.5">
+          <div class="text-center py-12 text-slate-500 text-xs">
+            Belum ada data pencarian. Klik "Cari Lowongan Baru" di atas untuk memulai.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: Tracker Lamaran ================= -->
+    <section id="tab-apply" class="hidden space-y-6">
+      <div class="bg-surface-card border border-surface-border rounded-2xl p-6 sm:p-7 shadow-sm">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-4 border-b border-surface-border">
+          <div>
+            <h2 class="text-lg font-bold text-white tracking-tight">Tracker Lamaran Kerja</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Kelola riwayat lamaran yang tersimpan, progres tahapan, dan generate surat lamaran.</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="exportApplicationsCSV()" class="px-3.5 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Export CSV
+            </button>
+            <button onclick="loadApplications()" class="px-3.5 py-2 bg-surface-elevated hover:bg-surface-hover border border-surface-border text-xs font-semibold rounded-xl transition-colors text-slate-200">
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter & Search Tracker -->
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-3 pt-2">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-xs text-slate-400 mr-1">Status:</span>
+            <button onclick="filterApps('all')" id="app-flt-all" class="px-2.5 py-1 bg-amber-500 text-slate-950 text-xs rounded-full font-bold">Semua</button>
+            <button onclick="filterApps('draft')" id="app-flt-draft" class="px-2.5 py-1 bg-surface-elevated text-slate-300 hover:bg-surface-hover text-xs rounded-full font-medium border border-surface-border">Draft</button>
+            <button onclick="filterApps('submitted')" id="app-flt-submitted" class="px-2.5 py-1 bg-surface-elevated text-slate-300 hover:bg-surface-hover text-xs rounded-full font-medium border border-surface-border">Submitted</button>
+            <button onclick="filterApps('interview')" id="app-flt-interview" class="px-2.5 py-1 bg-surface-elevated text-slate-300 hover:bg-surface-hover text-xs rounded-full font-medium border border-surface-border">Interview</button>
+            <button onclick="filterApps('offer')" id="app-flt-offer" class="px-2.5 py-1 bg-surface-elevated text-slate-300 hover:bg-surface-hover text-xs rounded-full font-medium border border-surface-border">Offer</button>
+            <button onclick="filterApps('rejected')" id="app-flt-rejected" class="px-2.5 py-1 bg-surface-elevated text-slate-300 hover:bg-surface-hover text-xs rounded-full font-medium border border-surface-border">Rejected</button>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="text" id="app-search-input" oninput="searchApps(this.value)" placeholder="Cari posisi / perusahaan..." class="bg-surface-elevated border border-surface-border text-xs rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-amber-500 w-52">
+            <span id="app-counter" class="text-xs text-slate-400">Total: 0</span>
+          </div>
+        </div>
+
+        <div class="mt-4 overflow-x-auto rounded-xl border border-surface-border">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="text-[11px] uppercase bg-surface-elevated text-slate-400 border-b border-surface-border">
+              <tr>
+                <th class="px-4 py-3 font-semibold">Posisi & Perusahaan</th>
+                <th class="px-4 py-3 font-semibold">Sumber</th>
+                <th class="px-4 py-3 font-semibold">Fit Score</th>
+                <th class="px-4 py-3 font-semibold">Status Tahapan</th>
+                <th class="px-4 py-3 font-semibold">Tanggal</th>
+                <th class="px-4 py-3 font-semibold">Catatan Interview</th>
+                <th class="px-4 py-3 text-right font-semibold">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="applications-table" class="divide-y divide-surface-border bg-surface-card">
+              <tr>
+                <td colspan="7" class="px-4 py-8 text-center text-slate-500 text-xs">Belum ada lamaran yang dilacak.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: Upload PDF CV -->
+  <div id="modal-upload" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-surface-card border border-surface-border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-bold text-white">Upload CV (PDF)</h3>
+        <button onclick="closeModal('modal-upload')" class="text-slate-400 hover:text-white text-lg font-bold">×</button>
+      </div>
+      <p class="text-xs text-slate-400">Teks CV akan diekstrak secara lokal dan otomatis mengisi draf profil karier Anda.</p>
+      <input type="file" id="cv-file-input" accept=".pdf" class="w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400 cursor-pointer">
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeModal('modal-upload')" class="px-3.5 py-1.5 rounded-xl bg-surface-elevated text-xs text-slate-300 hover:bg-surface-hover">Batal</button>
+        <button onclick="submitCvUpload()" class="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-bold text-slate-950">Ekstrak Data</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Paste Text CV -->
+  <div id="modal-paste" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-surface-card border border-surface-border rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-bold text-white">Paste Teks CV / Resume</h3>
+        <button onclick="closeModal('modal-paste')" class="text-slate-400 hover:text-white text-lg font-bold">×</button>
+      </div>
+      <p class="text-xs text-slate-400">Cocok untuk CV hasil Canva atau format gambar. Salin dan tempelkan teksnya di bawah:</p>
+      <textarea id="cv-paste-text" rows="8" class="w-full bg-surface-elevated border border-surface-border rounded-xl p-3 text-xs text-slate-200 focus:outline-none focus:border-amber-500 leading-relaxed font-mono" placeholder="Nama, email, nomor HP, keahlian teknis, riwayat kerja, pendidikan..."></textarea>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeModal('modal-paste')" class="px-3.5 py-1.5 rounded-xl bg-surface-elevated text-xs text-slate-300 hover:bg-surface-hover">Batal</button>
+        <button onclick="submitCvPaste()" class="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-bold text-slate-950">Parsing Teks</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Tambah Lowongan Manual -->
+  <div id="modal-manual-job" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-surface-card border border-surface-border rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-bold text-white">Tambah Lowongan Manual</h3>
+        <button onclick="closeModal('modal-manual-job')" class="text-slate-400 hover:text-white text-lg font-bold">×</button>
+      </div>
+      <p class="text-xs text-slate-400">Salin informasi lowongan dari portal kerja lain untuk dihitung skor kecocokannya.</p>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Judul Posisi *</label>
+          <input type="text" id="manual-job-title" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none" placeholder="Contoh: Web Developer">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Nama Perusahaan *</label>
+          <input type="text" id="manual-job-company" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none" placeholder="Contoh: PT Teknologi Nusantara">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Lokasi</label>
+            <input type="text" id="manual-job-loc" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none" placeholder="Semarang / Remote">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Sumber</label>
+            <input type="text" id="manual-job-src" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none" value="glints">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">URL Lowongan</label>
+          <input type="text" id="manual-job-url" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none" placeholder="https://...">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Deskripsi / Kualifikasi Lowongan</label>
+          <textarea id="manual-job-desc" rows="4" class="w-full bg-surface-elevated border border-surface-border rounded-xl px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none" placeholder="Requirements: HTML, CSS, JavaScript, React..."></textarea>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeModal('modal-manual-job')" class="px-3.5 py-1.5 rounded-xl bg-surface-elevated text-xs text-slate-300 hover:bg-surface-hover">Batal</button>
+        <button onclick="submitManualJob()" class="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-bold text-slate-950">Hitung Fit & Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Generator Cover Letter (Gratis & Offline) -->
+  <div id="modal-cover-letter" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-surface-card border border-surface-border rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="text-base font-bold text-white">Surat Lamaran (Cover Letter)</h3>
+          <p id="cl-subtitle" class="text-xs text-slate-400">Dihasilkan instan dari kecocokan profil.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="switchCoverLetterLang('id')" id="cl-btn-id" class="px-2.5 py-1 text-xs rounded-lg bg-amber-500 text-slate-950 font-bold">Indonesia</button>
+          <button onclick="switchCoverLetterLang('en')" id="cl-btn-en" class="px-2.5 py-1 text-xs rounded-lg bg-surface-elevated text-slate-300 hover:bg-surface-hover font-medium">English</button>
+          <button onclick="closeModal('modal-cover-letter')" class="text-slate-400 hover:text-white text-lg font-bold ml-2">×</button>
+        </div>
+      </div>
+      <textarea id="cover-letter-text" rows="12" class="w-full bg-surface-elevated border border-surface-border rounded-xl p-3 text-xs text-slate-100 font-mono focus:outline-none focus:border-amber-500 leading-relaxed"></textarea>
+      <div class="flex justify-between items-center pt-2">
+        <span class="text-[11px] text-slate-400">✓ 100% Gratis & tanpa biaya API</span>
+        <div class="flex gap-2">
+          <button onclick="closeModal('modal-cover-letter')" class="px-3.5 py-1.5 rounded-xl bg-surface-elevated text-xs text-slate-300 hover:bg-surface-hover">Tutup</button>
+          <button onclick="copyCoverLetter()" class="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-bold text-slate-950 flex items-center gap-1.5">
+            Salin Teks
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentMatches = [];
+    let currentFilter = 'all';
+    let currentProfileData = null;
+    let currentCoverLetterData = { company: '', title: '', lang: 'id' };
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold transition-all max-w-sm border ${
+        isError ? 'bg-rose-950 text-rose-200 border-rose-800' : 'bg-emerald-950 text-emerald-200 border-emerald-800'
+      }`;
+      setTimeout(() => t.classList.add('hidden'), 4000);
+    }
+
+    function switchTab(tab) {
+      ['setup', 'scrape', 'apply'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        const btn = document.getElementById(`tab-btn-${t}`);
+        btn.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-surface-elevated";
+      });
+      document.getElementById(`tab-${tab}`).classList.remove('hidden');
+      document.getElementById(`tab-btn-${tab}`).className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-amber-500 text-slate-950 shadow-sm";
+
+      if (tab === 'setup') loadProfile();
+      if (tab === 'scrape') loadMatches();
+      if (tab === 'apply') loadApplications();
+    }
+
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    function openUploadModal() { openModal('modal-upload'); }
+    function openPasteModal() { openModal('modal-paste'); }
+    function openManualJobModal() { openModal('modal-manual-job'); }
+
+    // Close on Escape or backdrop click
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        ['modal-upload', 'modal-paste', 'modal-manual-job', 'modal-cover-letter'].forEach(closeModal);
+      }
+    });
+
+    ['modal-upload', 'modal-paste', 'modal-manual-job', 'modal-cover-letter'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('click', (e) => {
+          if (e.target === el) closeModal(id);
+        });
+      }
+    });
+
+    // Tab 1: /setup
+    function renderExperienceList(items = []) {
+      const container = document.getElementById('experience-list');
+      container.innerHTML = '';
+      if (!items || !items.length) {
+        container.innerHTML = '<p class="text-xs text-slate-500 italic">Belum ada data pengalaman kerja. Klik "+ Tambah Pengalaman".</p>';
+        return;
+      }
+      items.forEach(exp => addExperienceRow(exp));
+    }
+
+    function addExperienceRow(item = {}) {
+      const container = document.getElementById('experience-list');
+      const emptyMsg = container.querySelector('p');
+      if (emptyMsg) emptyMsg.remove();
+
+      const row = document.createElement('div');
+      row.className = 'exp-row bg-surface-elevated border border-surface-border rounded-xl p-3.5 space-y-2.5 relative';
+      const safeComp = escapeHtml(item.company || '');
+      const safePos = escapeHtml(item.position || '');
+      const safeDur = escapeHtml(item.duration || '');
+      const safeResp = escapeHtml(Array.isArray(item.responsibilities) ? item.responsibilities.join(', ') : item.responsibilities || '');
+
+      row.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">Nama Perusahaan</label>
+            <input type="text" class="exp-company w-full bg-surface-card border border-surface-border rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-500 focus:outline-none" value="${safeComp}" placeholder="PT Teknologi">
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">Posisi / Jabatan</label>
+            <input type="text" class="exp-position w-full bg-surface-card border border-surface-border rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-500 focus:outline-none" value="${safePos}" placeholder="Web Developer">
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">Durasi</label>
+            <input type="text" class="exp-duration w-full bg-surface-card border border-surface-border rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-500 focus:outline-none" value="${safeDur}" placeholder="2023 - 2024">
+          </div>
+        </div>
+        <div>
+          <label class="block text-[10px] text-slate-400 mb-1">Tanggung Jawab (Pisahkan koma)</label>
+          <input type="text" class="exp-resp w-full bg-surface-card border border-surface-border rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-500 focus:outline-none" value="${safeResp}" placeholder="Membangun tampilan web, integrasi API, optimasi query">
+        </div>
+        <div class="flex justify-end">
+          <button type="button" onclick="this.closest('.exp-row').remove()" class="text-[11px] text-rose-400 hover:text-rose-300 font-medium">Hapus Pengalaman</button>
+        </div>
+      `;
+      container.appendChild(row);
+    }
+
+    function collectExperience() {
+      const rows = document.querySelectorAll('.exp-row');
+      const exps = [];
+      rows.forEach(r => {
+        const company = r.querySelector('.exp-company')?.value.trim();
+        const position = r.querySelector('.exp-position')?.value.trim();
+        const duration = r.querySelector('.exp-duration')?.value.trim();
+        const respText = r.querySelector('.exp-resp')?.value.trim();
+        const responsibilities = respText ? respText.split(',').map(s => s.trim()).filter(Boolean) : [];
+        if (company || position) {
+          exps.push({ company: company || 'Perusahaan', position: position || 'Developer', duration: duration || '', responsibilities });
+        }
+      });
+      return exps;
+    }
+
+    function renderEducationList(items = []) {
+      const container = document.getElementById('education-list');
+      container.innerHTML = '';
+      if (!items || !items.length) {
+        container.innerHTML = '<p class="text-xs text-slate-500 italic">Belum ada data pendidikan. Klik "+ Tambah Pendidikan".</p>';
+        return;
+      }
+      items.forEach(edu => addEducationRow(edu));
+    }
+
+    function addEducationRow(item = {}) {
+      const container = document.getElementById('education-list');
+      const emptyMsg = container.querySelector('p');
+      if (emptyMsg) emptyMsg.remove();
+
+      const row = document.createElement('div');
+      row.className = 'edu-row bg-surface-elevated border border-surface-border rounded-xl p-3.5 space-y-2.5 relative';
+      const safeInst = escapeHtml(item.institution || '');
+      const safeDeg = escapeHtml(item.degree || '');
+      const safeField = escapeHtml(item.field || '');
+      const safeYr = escapeHtml(item.year || '');
+
+      row.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-2.5">
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">Institusi / Kampus / Sekolah</label>
+            <input type="text" class="edu-inst w-full bg-surface-card border border-surface-border rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-500 focus:outline-none" value="${safeInst}" placeholder="Universitas / SMK">
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">Gelar / Jenjang</label>
+            <input type="text" class="edu-degree w-full bg-surface-card border border-surface-border rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-500 focus:outline-none" value="${safeDeg}" placeholder="S1 / D3 / SMK">
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">Jurusan / Bidang</label>
+            <input type="text" class="edu-field w-full bg-surface-card border border-surface-border rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-500 focus:outline-none" value="${safeField}" placeholder="Teknik Informatika">
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">Tahun Kelulusan</label>
+            <input type="text" class="edu-year w-full bg-surface-card border border-surface-border rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-500 focus:outline-none" value="${safeYr}" placeholder="2023">
+          </div>
+        </div>
+        <div class="flex justify-end">
+          <button type="button" onclick="this.closest('.edu-row').remove()" class="text-[11px] text-rose-400 hover:text-rose-300 font-medium">Hapus Pendidikan</button>
+        </div>
+      `;
+      container.appendChild(row);
+    }
+
+    function collectEducation() {
+      const rows = document.querySelectorAll('.edu-row');
+      const edus = [];
+      rows.forEach(r => {
+        const institution = r.querySelector('.edu-inst')?.value.trim();
+        const degree = r.querySelector('.edu-degree')?.value.trim();
+        const field = r.querySelector('.edu-field')?.value.trim();
+        const year = r.querySelector('.edu-year')?.value.trim();
+        if (institution || field || degree) {
+          edus.push({ institution: institution || '', degree: degree || '', field: field || '', year: year || '' });
+        }
+      });
+      return edus;
+    }
+
+    async function loadProfile() {
+      try {
+        const res = await fetch('/api/profile');
+        const data = await res.json();
+        currentProfileData = data;
+        document.getElementById('prof-name').value = data.personal?.name || '';
+        document.getElementById('prof-email').value = data.personal?.email || '';
+        document.getElementById('prof-phone').value = data.personal?.phone || '';
+        document.getElementById('prof-location').value = data.personal?.location || '';
+        document.getElementById('prof-links').value = (data.personal?.links || []).join(', ');
+        document.getElementById('prof-target-role').value = data.target_role || '';
+        document.getElementById('prof-work-type').value = data.preferences?.work_type || 'remote';
+        document.getElementById('prof-salary').value = data.preferences?.salary_expectation || '';
+        document.getElementById('prof-pref-locs').value = (data.preferences?.locations || []).join(', ');
+        document.getElementById('prof-deal-breakers').value = (data.deal_breakers || []).join(', ');
+        document.getElementById('prof-tech-skills').value = (data.skills?.technical || []).join(', ');
+        document.getElementById('prof-soft-skills').value = (data.skills?.soft || []).join(', ');
+        document.getElementById('prof-languages').value = (data.languages || []).map(l => `${l.language}:${l.level}`).join(', ');
+
+        renderExperienceList(data.experience || []);
+        renderEducationList(data.education || []);
+      } catch (err) {
+        showToast("Gagal memuat profil: " + err.message, true);
+      }
+    }
+
+    async function saveProfile() {
+      const payload = {
+        personal: {
+          name: document.getElementById('prof-name').value.trim(),
+          email: document.getElementById('prof-email').value.trim(),
+          phone: document.getElementById('prof-phone').value.trim(),
+          location: document.getElementById('prof-location').value.trim(),
+          links: document.getElementById('prof-links').value.split(',').map(s => s.trim()).filter(Boolean)
+        },
+        target_role: document.getElementById('prof-target-role').value.trim(),
+        preferences: {
+          work_type: document.getElementById('prof-work-type').value,
+          salary_expectation: document.getElementById('prof-salary').value.trim(),
+          locations: document.getElementById('prof-pref-locs').value.split(',').map(s => s.trim()).filter(Boolean)
+        },
+        deal_breakers: document.getElementById('prof-deal-breakers').value.split(',').map(s => s.trim()).filter(Boolean),
+        languages: document.getElementById('prof-languages').value.split(',').map(s => {
+          const parts = s.split(':');
+          return { language: parts[0]?.trim() || '', level: parts[1]?.trim() || 'conversational' };
+        }).filter(l => l.language),
+        skills: {
+          technical: document.getElementById('prof-tech-skills').value.split(',').map(s => s.trim()).filter(Boolean),
+          soft: document.getElementById('prof-soft-skills').value.split(',').map(s => s.trim()).filter(Boolean)
+        },
+        experience: collectExperience(),
+        education: collectEducation(),
+        certifications: currentProfileData?.certifications || []
+      };
+
+      try {
+        const res = await fetch('/api/profile', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.detail || "Gagal menyimpan");
+        currentProfileData = payload;
+        showToast("Profil berhasil disimpan ke profile.json");
+      } catch (err) {
+        showToast("Error simpan profil: " + err.message, true);
+      }
+    }
+
+    async function submitCvUpload() {
+      const fileInput = document.getElementById('cv-file-input');
+      if (!fileInput.files.length) return showToast("Pilih file PDF terlebih dahulu", true);
+      const fd = new FormData();
+      fd.append('file', fileInput.files[0]);
+
+      try {
+        const res = await fetch('/api/profile/upload-cv', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Upload gagal");
+        closeModal('modal-upload');
+        populateProfileForm(data.draft_profile);
+        showToast("Ekstraksi PDF berhasil! Silakan review dan klik Simpan Profil.");
+      } catch (e) {
+        showToast(e.message, true);
+      }
+    }
+
+    async function submitCvPaste() {
+      const text = document.getElementById('cv-paste-text').value;
+      if (!text.trim()) return showToast("Isi teks CV", true);
+      try {
+        const res = await fetch('/api/profile/parse-text', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ text })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail);
+        closeModal('modal-paste');
+        populateProfileForm(data.draft_profile);
+        showToast("Teks berhasil diparsing! Silakan review dan klik Simpan Profil.");
+      } catch (e) {
+        showToast(e.message, true);
+      }
+    }
+
+    function populateProfileForm(draft) {
+      if (!draft) return;
+      currentProfileData = Object.assign({}, currentProfileData, draft);
+      if (draft.personal?.name) document.getElementById('prof-name').value = draft.personal.name;
+      if (draft.personal?.email) document.getElementById('prof-email').value = draft.personal.email;
+      if (draft.personal?.phone) document.getElementById('prof-phone').value = draft.personal.phone;
+      if (draft.personal?.location) document.getElementById('prof-location').value = draft.personal.location;
+      if (draft.personal?.links?.length) document.getElementById('prof-links').value = draft.personal.links.join(', ');
+      if (draft.target_role) document.getElementById('prof-target-role').value = draft.target_role;
+      if (draft.preferences?.work_type) document.getElementById('prof-work-type').value = draft.preferences.work_type;
+      if (draft.preferences?.locations?.length) document.getElementById('prof-pref-locs').value = draft.preferences.locations.join(', ');
+      if (draft.deal_breakers?.length) document.getElementById('prof-deal-breakers').value = draft.deal_breakers.join(', ');
+      if (draft.skills?.technical?.length) document.getElementById('prof-tech-skills').value = draft.skills.technical.join(', ');
+      if (draft.skills?.soft?.length) document.getElementById('prof-soft-skills').value = draft.skills.soft.join(', ');
+      if (draft.languages?.length) document.getElementById('prof-languages').value = draft.languages.map(l => `${l.language}:${l.level}`).join(', ');
+      if (draft.experience?.length) renderExperienceList(draft.experience);
+      if (draft.education?.length) renderEducationList(draft.education);
+    }
+
+    // Tab 2: /scrape
+    async function runScrape() {
+      const btn = document.getElementById('scrape-btn');
+      const spinner = document.getElementById('scrape-spinner');
+      const statusBox = document.getElementById('scrape-status-box');
+
+      btn.disabled = true;
+      spinner.classList.remove('hidden');
+      statusBox.classList.remove('hidden');
+      statusBox.innerHTML = "Sedang mengambil data dari LinkedIn dan portal mitra dengan jeda wajar...";
+
+      try {
+        const res = await fetch('/api/scrape', { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Scrape gagal");
+
+        statusBox.innerHTML = `
+          <strong>Hasil Pencarian:</strong> Total lowongan unik: ${data.total_unique} |
+          LinkedIn: ${data.sources.linkedin_count} |
+          Jobstreet status: ${data.sources.jobstreet_status} (${data.sources.jobstreet_message})
+        `;
+        showToast(`Selesai! Ditemukan ${data.total_unique} lowongan.`);
+        loadMatches();
+      } catch (e) {
+        statusBox.innerHTML = `<span class="text-rose-400">Error: ${e.message}</span>`;
+        showToast(e.message, true);
+      } finally {
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+      }
+    }
+
+    async function loadMatches() {
+      try {
+        const res = await fetch('/api/matches');
+        currentMatches = await res.json();
+        renderMatches();
+      } catch (e) {
+        showToast("Gagal memuat matches: " + e.message, true);
+      }
+    }
+
+    function filterMatches(type) {
+      currentFilter = type;
+      ['all', 'eligible', 'rejected'].forEach(f => {
+        const b = document.getElementById(`flt-${f}`);
+        if (f === type) {
+          b.className = "px-3 py-1 bg-amber-500 text-slate-950 text-xs rounded-full font-bold";
+        } else {
+          b.className = "px-3 py-1 bg-surface-elevated text-slate-300 hover:bg-surface-hover text-xs rounded-full font-medium border border-surface-border";
+        }
+      });
+      renderMatches();
+    }
+
+    function renderMatches() {
+      const container = document.getElementById('jobs-container');
+      let filtered = currentMatches;
+
+      if (currentFilter === 'eligible') filtered = currentMatches.filter(m => !m.rejected);
+      if (currentFilter === 'rejected') filtered = currentMatches.filter(m => m.rejected);
+
+      document.getElementById('match-counter').textContent = `Menampilkan ${filtered.length} dari ${currentMatches.length} lowongan`;
+
+      if (!filtered.length) {
+        container.innerHTML = `<div class="text-center py-12 text-slate-500 text-xs">Tidak ada lowongan yang cocok dengan filter.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map((job) => {
+        const isRejected = job.rejected;
+        const scoreBadge = isRejected ? 'bg-rose-950/60 text-rose-300 border-rose-800' :
+                           job.fit_score >= 80 ? 'bg-emerald-950/60 text-emerald-300 border-emerald-800' :
+                           job.fit_score >= 60 ? 'bg-sky-950/60 text-sky-300 border-sky-800' :
+                           'bg-amber-950/60 text-amber-300 border-amber-800';
+
+        const safeTitle = escapeHtml(job.title);
+        const safeCompany = escapeHtml(job.company);
+        const safeLoc = escapeHtml(job.location);
+        const safeSource = escapeHtml(job.source);
+        const safeReason = escapeHtml(job.reason);
+        const safeRejection = escapeHtml(job.rejection_reason);
+
+        return `
+          <div class="bg-surface-elevated border ${isRejected ? 'border-rose-900/40' : 'border-surface-border hover:border-surface-borderHover'} rounded-2xl p-5 transition-all">
+            <div class="flex flex-col md:flex-row justify-between items-start gap-4">
+              <div class="space-y-2 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${job.source === 'linkedin' ? 'bg-sky-500/10 text-sky-400 border border-sky-500/30' : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'}">
+                    ${safeSource}
+                  </span>
+                  <h3 class="text-sm font-bold text-white">${safeTitle}</h3>
+                </div>
+                <div class="text-xs text-slate-400 flex items-center gap-2 font-medium">
+                  <span class="text-slate-200">${safeCompany}</span> • <span>${safeLoc}</span>
+                </div>
+                <div class="text-xs text-slate-300 pt-0.5 leading-relaxed">
+                  ${safeReason}
+                </div>
+
+                ${job.gaps?.length ? `
+                  <div class="text-[11px] text-amber-300/90 pt-1 flex items-start gap-1">
+                    <span>⚠️ Gap:</span> <span>${job.gaps.map(g => escapeHtml(g)).join('; ')}</span>
+                  </div>
+                ` : ''}
+
+                ${job.warnings?.length ? `
+                  <div class="text-[11px] text-orange-300 pt-0.5">
+                    ℹ️ ${job.warnings.map(w => escapeHtml(w)).join('; ')}
+                  </div>
+                ` : ''}
+
+                ${isRejected ? `
+                  <div class="text-xs text-rose-300 font-medium bg-rose-950/40 border border-rose-900/60 rounded-xl p-2.5 mt-2">
+                    ⛔ Gate Keras: ${safeRejection}
+                  </div>
+                ` : ''}
+              </div>
+
+              <div class="flex md:flex-col items-end justify-between gap-3 w-full md:w-auto">
+                <div class="text-center px-4 py-2 rounded-xl border ${scoreBadge} min-w-[80px]">
+                  <div class="text-xl font-black">${isRejected ? 0 : job.fit_score}%</div>
+                  <div class="text-[9px] uppercase font-bold tracking-wider opacity-80">Fit Score</div>
+                </div>
+
+                <div class="flex gap-2">
+                  ${job.url ? `<a href="${encodeURI(job.url)}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-surface-card hover:bg-surface-hover border border-surface-border text-xs rounded-xl text-slate-300 transition-colors">Buka Link</a>` : ''}
+                  ${!isRejected ? `
+                    <button onclick="applyJob('${safeTitle.replace(/'/g, "\\'")}', '${safeCompany.replace(/'/g, "\\'")}', '${encodeURI(job.url || '')}', '${safeSource}', ${job.fit_score})" class="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl transition-colors shadow-sm">
+                      Simpan Lamaran
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function submitManualJob() {
+      const payload = {
+        title: document.getElementById('manual-job-title').value.trim(),
+        company: document.getElementById('manual-job-company').value.trim(),
+        location: document.getElementById('manual-job-loc').value.trim(),
+        source: document.getElementById('manual-job-src').value.trim(),
+        url: document.getElementById('manual-job-url').value.trim(),
+        description: document.getElementById('manual-job-desc').value.trim()
+      };
+      if (!payload.title || !payload.company) return showToast("Judul & Perusahaan wajib diisi", true);
+
+      try {
+        const res = await fetch('/api/jobs/manual', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        closeModal('modal-manual-job');
+        showToast("Lowongan manual berhasil dievaluasi dan ditambahkan!");
+        loadMatches();
+      } catch (e) {
+        showToast(e.message, true);
+      }
+    }
+
+    // Tab 3: /apply & Tracker
+    async function applyJob(title, company, url, source, score) {
+      if (!confirm(`Simpan "${title}" di ${company} ke Tracker Lamaran?`)) return;
+
+      try {
+        const res = await fetch('/api/apply/track', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            title, company, url, source, fit_score: score,
+            status: 'draft',
+            interview_notes: 'Menunggu penyesuaian CV & Cover Letter'
+          })
+        });
+        const data = await res.json();
+        showToast(data.message);
+        switchTab('apply');
+      } catch (e) {
+        showToast("Gagal mendaftarkan: " + e.message, true);
+      }
+    }
+
+    let allApplications = [];
+    let currentAppFilter = 'all';
+    let currentAppSearch = '';
+
+    async function loadApplications() {
+      try {
+        const res = await fetch('/api/applications');
+        allApplications = await res.json();
+        renderApplicationsTable();
+      } catch (e) {
+        showToast("Gagal memuat tracker: " + e.message, true);
+      }
+    }
+
+    function filterApps(status) {
+      currentAppFilter = status;
+      ['all', 'draft', 'submitted', 'interview', 'offer', 'rejected'].forEach(s => {
+        const btn = document.getElementById(`app-flt-${s}`);
+        if (btn) {
+          btn.className = s === status ?
+            'px-2.5 py-1 bg-amber-500 text-slate-950 text-xs rounded-full font-bold' :
+            'px-2.5 py-1 bg-surface-elevated text-slate-300 hover:bg-surface-hover text-xs rounded-full font-medium border border-surface-border';
+        }
+      });
+      renderApplicationsTable();
+    }
+
+    function searchApps(query) {
+      currentAppSearch = (query || '').toLowerCase().trim();
+      renderApplicationsTable();
+    }
+
+    function renderApplicationsTable() {
+      let filtered = allApplications;
+      if (currentAppFilter !== 'all') {
+        filtered = filtered.filter(a => (a.status || 'draft').toLowerCase() === currentAppFilter);
+      }
+      if (currentAppSearch) {
+        filtered = filtered.filter(a =>
+          (a.title || '').toLowerCase().includes(currentAppSearch) ||
+          (a.company || '').toLowerCase().includes(currentAppSearch)
+        );
+      }
+
+      document.getElementById('app-counter').textContent = `Total: ${filtered.length} dari ${allApplications.length}`;
+      const tbody = document.getElementById('applications-table');
+
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-slate-500 text-xs">Tidak ada data lamaran yang sesuai filter.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(app => {
+        const safeTitle = escapeHtml(app.title);
+        const safeComp = escapeHtml(app.company);
+        return `
+          <tr class="hover:bg-surface-elevated/50 transition-colors">
+            <td class="px-4 py-3">
+              <div class="font-bold text-white text-xs">${safeTitle}</div>
+              <div class="text-[11px] text-slate-400">${safeComp}</div>
+            </td>
+            <td class="px-4 py-3 text-[11px] uppercase text-slate-400 font-semibold">${escapeHtml(app.source)}</td>
+            <td class="px-4 py-3 font-bold text-amber-400 text-xs">${app.fit_score}%</td>
+            <td class="px-4 py-3">
+              <select onchange="updateStatus(${app.id}, this.value)" class="bg-surface-elevated border border-surface-border text-xs rounded-lg px-2.5 py-1 text-slate-200 focus:outline-none focus:border-amber-500 cursor-pointer">
+                <option value="draft" ${app.status === 'draft' ? 'selected' : ''}>Draft</option>
+                <option value="submitted" ${app.status === 'submitted' ? 'selected' : ''}>Submitted</option>
+                <option value="interview" ${app.status === 'interview' ? 'selected' : ''}>Interview</option>
+                <option value="rejected" ${app.status === 'rejected' ? 'selected' : ''}>Rejected</option>
+                <option value="offer" ${app.status === 'offer' ? 'selected' : ''}>Offer</option>
+              </select>
+            </td>
+            <td class="px-4 py-3 text-xs text-slate-400">${app.applied_date || '-'}</td>
+            <td class="px-4 py-3 text-xs">
+              <input type="text" value="${escapeHtml(app.interview_notes || '')}" onblur="updateNotes(${app.id}, this.value)" class="w-full bg-surface-elevated border border-surface-border focus:border-amber-500 px-2.5 py-1 rounded-lg text-slate-300 text-xs" placeholder="Tambah catatan...">
+            </td>
+            <td class="px-4 py-3 text-right text-xs">
+              <div class="flex items-center justify-end gap-1.5">
+                ${app.url ? `<a href="${encodeURI(app.url)}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 bg-surface-elevated hover:bg-surface-hover border border-surface-border rounded-lg text-slate-300 text-[11px]">Link</a>` : ''}
+                <button onclick="openCoverLetterModal('${safeComp.replace(/'/g, "\\'")}', '${safeTitle.replace(/'/g, "\\'")}')" class="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded-lg text-[11px] font-semibold transition-colors" title="Buat Surat Lamaran">
+                  Cover Letter
+                </button>
+                <button onclick="removeApplication(${app.id}, '${safeTitle.replace(/'/g, "\\'")}')" class="px-2 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded-lg text-[11px] font-semibold transition-colors" title="Hapus Lamaran">
+                  Hapus
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function exportApplicationsCSV() {
+      if (!allApplications.length) return showToast("Belum ada data lamaran untuk diekspor", true);
+      const headers = ["ID", "Posisi", "Perusahaan", "Sumber", "Fit Score (%)", "Status", "Tanggal", "Catatan Interview", "URL"];
+      const rows = allApplications.map(a => [
+        a.id,
+        `"${(a.title || '').replace(/"/g, '""')}"`,
+        `"${(a.company || '').replace(/"/g, '""')}"`,
+        `"${(a.source || '').replace(/"/g, '""')}"`,
+        a.fit_score || 0,
+        `"${(a.status || 'draft').replace(/"/g, '""')}"`,
+        `"${(a.applied_date || '').replace(/"/g, '""')}"`,
+        `"${(a.interview_notes || '').replace(/"/g, '""')}"`,
+        `"${(a.url || '').replace(/"/g, '""')}"`
+      ]);
+      const csvContent = "﻿" + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `lamaran_kerja_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast("File CSV berhasil diekspor!");
+    }
+
+    async function updateStatus(id, newStatus) {
+      try {
+        await fetch(`/api/applications/${id}`, {
+          method: 'PATCH',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ status: newStatus })
+        });
+        showToast("Status berhasil diupdate!");
+      } catch (e) {
+        showToast("Update status gagal", true);
+      }
+    }
+
+    async function updateNotes(id, notes) {
+      try {
+        await fetch(`/api/applications/${id}`, {
+          method: 'PATCH',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ interview_notes: notes })
+        });
+        showToast("Catatan tersimpan!");
+      } catch (e) {
+        showToast("Update catatan gagal", true);
+      }
+    }
+
+    async function removeApplication(id, title) {
+      if (!confirm(`Yakin ingin menghapus lamaran "${title}" dari tracker?`)) return;
+      try {
+        const res = await fetch(`/api/applications/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error("Gagal menghapus lamaran");
+        showToast("Lamaran berhasil dihapus!");
+        loadApplications();
+      } catch (e) {
+        showToast(e.message, true);
+      }
+    }
+
+    // Cover letter modal logic
+    async function openCoverLetterModal(company, title) {
+      currentCoverLetterData = { company, title, lang: 'id' };
+      document.getElementById('cl-subtitle').textContent = `${title} di ${company}`;
+      openModal('modal-cover-letter');
+      await fetchCoverLetter();
+    }
+
+    async function switchCoverLetterLang(lang) {
+      currentCoverLetterData.lang = lang;
+      document.getElementById('cl-btn-id').className = lang === 'id' ? 'px-2.5 py-1 text-xs rounded-lg bg-amber-500 text-slate-950 font-bold' : 'px-2.5 py-1 text-xs rounded-lg bg-surface-elevated text-slate-300 hover:bg-surface-hover font-medium';
+      document.getElementById('cl-btn-en').className = lang === 'en' ? 'px-2.5 py-1 text-xs rounded-lg bg-amber-500 text-slate-950 font-bold' : 'px-2.5 py-1 text-xs rounded-lg bg-surface-elevated text-slate-300 hover:bg-surface-hover font-medium';
+      await fetchCoverLetter();
+    }
+
+    async function fetchCoverLetter() {
+      const ta = document.getElementById('cover-letter-text');
+      ta.value = "Menyiapkan surat lamaran terpersonalisasi (100% gratis)...";
+      try {
+        const res = await fetch('/api/generate-cover-letter', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(currentCoverLetterData)
+        });
+        const data = await res.json();
+        ta.value = data.cover_letter || '';
+      } catch (e) {
+        ta.value = "Gagal memuat cover letter: " + e.message;
+      }
+    }
+
+    function copyCoverLetter() {
+      const ta = document.getElementById('cover-letter-text');
+      navigator.clipboard.writeText(ta.value);
+      showToast("Surat lamaran berhasil disalin ke clipboard!");
+    }
+
+    // Inisialisasi awal
+    loadProfile();
+  </script>
+</body>
+</html>
