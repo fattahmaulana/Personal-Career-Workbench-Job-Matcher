@@ -79,6 +79,9 @@
         <button onclick="switchTab('apply')" id="tab-btn-apply" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-surface-elevated">
           3. Tracker Lamaran
         </button>
+        <button onclick="switchTab('resources')" id="tab-btn-resources" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-surface-elevated">
+          4. Direktori Karier
+        </button>
       </nav>
     </div>
   </header>
@@ -331,6 +334,38 @@
       </div>
     </section>
 
+    <!-- ================= TAB 4: Direktori Karier & Sumber Daya ================= -->
+    <section id="tab-resources" class="hidden space-y-6">
+      <div class="bg-surface-card border border-surface-border rounded-2xl p-6 sm:p-7 shadow-sm">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-surface-border">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-lg font-bold text-white tracking-tight">Direktori & Sumber Daya Karier</h2>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">25 Platform Pilihan</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">Portal lowongan terpercaya, template resume resmi universitas terbaik dunia, dan platform simulasi interview.</p>
+          </div>
+          <div>
+            <input type="text" id="res-search-input" oninput="searchResources(this.value)" placeholder="Cari nama platform / kampus..." class="bg-surface-elevated border border-surface-border text-xs rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-500 w-full sm:w-64">
+          </div>
+        </div>
+
+        <!-- Filter Kategori -->
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-3 pt-2">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button onclick="filterResources('all')" id="res-flt-all" class="px-3 py-1 bg-amber-500 text-slate-950 text-xs rounded-full font-bold">Semua (25)</button>
+            <button onclick="filterResources('jobs')" id="res-flt-jobs" class="px-3 py-1 bg-surface-elevated text-slate-300 hover:bg-surface-hover text-xs rounded-full font-medium border border-surface-border">Portal Lowongan (10)</button>
+            <button onclick="filterResources('cv')" id="res-flt-cv" class="px-3 py-1 bg-surface-elevated text-slate-300 hover:bg-surface-hover text-xs rounded-full font-medium border border-surface-border">Template CV Kampus (8)</button>
+            <button onclick="filterResources('interview')" id="res-flt-interview" class="px-3 py-1 bg-surface-elevated text-slate-300 hover:bg-surface-hover text-xs rounded-full font-medium border border-surface-border">Latihan Interview (7)</button>
+          </div>
+          <div id="res-counter" class="text-xs text-slate-400 font-medium">Menampilkan 25 sumber daya</div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div id="resources-grid" class="mt-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
+      </div>
+    </section>
+
   </main>
 
   <!-- MODAL: Upload PDF CV -->
@@ -461,17 +496,21 @@
     }
 
     function switchTab(tab) {
-      ['setup', 'scrape', 'apply'].forEach(t => {
-        document.getElementById(`tab-${t}`).classList.add('hidden');
+      ['setup', 'scrape', 'apply', 'resources'].forEach(t => {
+        const section = document.getElementById(`tab-${t}`);
+        if (section) section.classList.add('hidden');
         const btn = document.getElementById(`tab-btn-${t}`);
-        btn.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-surface-elevated";
+        if (btn) btn.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-surface-elevated";
       });
-      document.getElementById(`tab-${tab}`).classList.remove('hidden');
-      document.getElementById(`tab-btn-${tab}`).className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-amber-500 text-slate-950 shadow-sm";
+      const activeSec = document.getElementById(`tab-${tab}`);
+      if (activeSec) activeSec.classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-btn-${tab}`);
+      if (activeBtn) activeBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-amber-500 text-slate-950 shadow-sm";
 
       if (tab === 'setup') loadProfile();
       if (tab === 'scrape') loadMatches();
       if (tab === 'apply') loadApplications();
+      if (tab === 'resources') renderResources();
     }
 
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
@@ -1132,8 +1171,128 @@
       showToast("Surat lamaran berhasil disalin ke clipboard!");
     }
 
+    // ================= Direktori Karier & Sumber Daya =================
+    const CAREER_RESOURCES = [
+      // 1. Website Cari Lowongan Kerja
+      { category: 'jobs', name: 'LinkedIn Jobs', url: 'https://lnkd.in/gt_wicjV', badge: 'Jaringan Profesional', desc: 'Platform lowongan kerja resmi terbesar dunia dengan akses langsung ke recruiter & HRD.' },
+      { category: 'jobs', name: 'Indeed', url: 'https://www.indeed.com', badge: 'Portal Global Terbesar', desc: 'Mesin pencari lowongan kerja jutaan listing dari situs karir perusahaan dan portal eksternal.' },
+      { category: 'jobs', name: 'Glassdoor', url: 'https://www.glassdoor.com', badge: 'Review & Transparansi Gaji', desc: 'Pencarian lowongan kerja lengkap dengan ulasan internal gaji, wawancara, dan budaya kerja.' },
+      { category: 'jobs', name: 'SimplyHired', url: 'https://lnkd.in/gpnKTjPD', badge: 'Pencarian Multi-Negara', desc: 'Agregator pencarian karir dengan estimasi gaji serta riwayat kebutuhan industri.' },
+      { category: 'jobs', name: 'JobStreet', url: 'https://www.jobstreet.com', badge: 'Terpopuler Indonesia & SEA', desc: 'Portal utama pencarian kerja di Indonesia & Asia Tenggara untuk berbagai level posisi.' },
+      { category: 'jobs', name: 'Kalibrr', url: 'https://www.kalibrr.com', badge: 'Startup & Korporat BUMN', desc: 'Platform rekrutmen berbasis kecocokan keahlian terpercaya bagi tech company dan perbankan.' },
+      { category: 'jobs', name: 'Glints', url: 'https://glints.com', badge: 'Ekosistem Karier SEA', desc: 'Pencarian lowongan tech, magang, full-time, dan remote di kawasan Asia Tenggara.' },
+      { category: 'jobs', name: 'AngelList (Wellfound)', url: 'https://angel.co/jobs', badge: 'Startup & Tech Dunia', desc: 'Portal kerja khusus ekosistem startup teknologi dunia, dari tahap awal (early-stage) hingga unicorn.' },
+      { category: 'jobs', name: 'We Work Remotely', url: 'https://weworkremotely.com', badge: '100% Remote Global', desc: 'Komunitas kerja jarak jauh (remote work) global terbesar untuk software engineer dan digital talent.' },
+      { category: 'jobs', name: 'Remote OK', url: 'https://remoteok.com', badge: 'Remote & Digital Nomad', desc: 'Papan lowongan remote work internasional dengan keterbukaan rentang kompensasi dalam USD.' },
+
+      // 2. Template CV Universitas Ternama Dunia
+      { category: 'cv', name: 'Yale University', url: 'https://lnkd.in/gdArUwsC', badge: 'Ivy League / USA', desc: 'Panduan dan template resume teruji standar Office of Career Strategy Yale University.' },
+      { category: 'cv', name: 'Stanford University', url: 'https://lnkd.in/g4wrfGuM', badge: 'Silicon Valley / USA', desc: 'Format CV teknis dan resume standar industri dari Stanford BEAM Career Education.' },
+      { category: 'cv', name: 'Harvard University', url: 'https://lnkd.in/gz8apPph', badge: 'Ivy League / USA', desc: 'Template resume standar Harvard FAS Mignone Center for Career Success (sangat ATS-friendly).' },
+      { category: 'cv', name: 'University of Oxford', url: 'https://lnkd.in/g4G-AyUt', badge: 'Top Tier / UK', desc: 'Format CV akademik & profesional terstruktur dari Oxford University Careers Service.' },
+      { category: 'cv', name: 'University of Sydney', url: 'https://lnkd.in/gwFiyVhD', badge: 'Group of Eight / AUS', desc: 'Struktur resume standar industri internasional dari University of Sydney CareerHub.' },
+      { category: 'cv', name: 'University of Edinburgh', url: 'https://lnkd.in/ghD4xNNY', badge: 'Russell Group / UK', desc: 'Panduan tata letak CV efektif, ringkas, dan jelas dari Careers Service Univ. of Edinburgh.' },
+      { category: 'cv', name: 'Massachusetts Institute of Technology (MIT)', url: 'https://lnkd.in/gvniqzhw', badge: 'World #1 Engineering / USA', desc: 'Standar resume rekayasa software & engineering dari MIT Career Advising & Development.' },
+      { category: 'cv', name: 'University of Cambridge', url: 'https://lnkd.in/ghfTJn9z', badge: 'Top Tier / UK', desc: 'Template CV resmi dan pedoman penulisan pencapaian profesional dari Cambridge Careers.' },
+
+      // 3. Website Latihan Interview & Coding
+      { category: 'interview', name: 'Pramp', url: 'https://www.pramp.com', badge: 'Mock Live Peer-to-Peer', desc: 'Simulasi wawancara kerja teknis dan behavioral tatap muka live gratis bersama sesama kandidat.' },
+      { category: 'interview', name: 'LeetCode', url: 'https://leetcode.com', badge: 'Algoritma & Struktur Data', desc: 'Standar emas latihan problem solving, algoritma, dan coding assessment perusahaan teknologi global.' },
+      { category: 'interview', name: 'HackerRank', url: 'https://www.hackerrank.com', badge: 'Coding & Skill Certificate', desc: 'Latihan soal coding, algoritma, database SQL, dan sertifikasi keahlian teknis siap kerja.' },
+      { category: 'interview', name: 'InterviewBit', url: 'https://lnkd.in/g2YGaWwh', badge: 'Silabus Wawancara Tech', desc: 'Jalur pembelajaran terstruktur untuk persiapan wawancara teknis di perusahaan tier-1.' },
+      { category: 'interview', name: 'Interview Mocha', url: 'https://lnkd.in/g3jd6znv', badge: 'Skill Assessment Simulasi', desc: 'Pengenalan berbagai format tes asesmen kemampuan berbasis peran dan tes bakat industri.' },
+      { category: 'interview', name: 'GeeksforGeeks', url: 'https://lnkd.in/gkx733ei', badge: 'CS Theory & System Design', desc: 'Pustaka teori ilmu komputer, perancangan sistem (system design), dan arsip tanya jawab interview.' },
+      { category: 'interview', name: 'Big Interview', url: 'https://biginterview.com', badge: 'Behavioral & Metode STAR', desc: 'Pelatihan video interaktif untuk menguasai jawaban wawancara perilaku (behavioral STAR).' }
+    ];
+
+    let currentResFilter = 'all';
+    let currentResSearch = '';
+
+    function filterResources(category) {
+      currentResFilter = category;
+      ['all', 'jobs', 'cv', 'interview'].forEach(c => {
+        const btn = document.getElementById(`res-flt-${c}`);
+        if (btn) {
+          btn.className = c === category ?
+            'px-3 py-1 bg-amber-500 text-slate-950 text-xs rounded-full font-bold' :
+            'px-3 py-1 bg-surface-elevated text-slate-300 hover:bg-surface-hover text-xs rounded-full font-medium border border-surface-border';
+        }
+      });
+      renderResources();
+    }
+
+    function searchResources(query) {
+      currentResSearch = (query || '').toLowerCase().trim();
+      renderResources();
+    }
+
+    function renderResources() {
+      const container = document.getElementById('resources-grid');
+      if (!container) return;
+
+      let filtered = CAREER_RESOURCES;
+      if (currentResFilter !== 'all') {
+        filtered = filtered.filter(r => r.category === currentResFilter);
+      }
+      if (currentResSearch) {
+        filtered = filtered.filter(r =>
+          r.name.toLowerCase().includes(currentResSearch) ||
+          r.desc.toLowerCase().includes(currentResSearch) ||
+          r.badge.toLowerCase().includes(currentResSearch)
+        );
+      }
+
+      document.getElementById('res-counter').textContent = `Menampilkan ${filtered.length} dari ${CAREER_RESOURCES.length} sumber daya`;
+
+      if (!filtered.length) {
+        container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500 text-xs">Tidak ada platform yang cocok dengan pencarian.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => {
+        const safeName = escapeHtml(item.name);
+        const safeDesc = escapeHtml(item.desc);
+        const safeBadge = escapeHtml(item.badge);
+
+        const categoryTag = item.category === 'jobs' ?
+          '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">Portal Kerja</span>' :
+          item.category === 'cv' ?
+          '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-300 border border-sky-500/20">Template CV</span>' :
+          '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20">Latihan Interview</span>';
+
+        return `
+          <div class="bg-surface-elevated border border-surface-border hover:border-surface-borderHover rounded-2xl p-4 flex flex-col justify-between transition-all group">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                ${categoryTag}
+                <span class="text-[10px] text-slate-400 font-medium">${safeBadge}</span>
+              </div>
+              <h4 class="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">${safeName}</h4>
+              <p class="text-[11px] text-slate-400 leading-relaxed">${safeDesc}</p>
+            </div>
+
+            <div class="flex items-center gap-2 pt-3.5 mt-3 border-t border-surface-border">
+              <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="flex-1 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/30 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5">
+                <span>Buka Link</span>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+              </a>
+              <button onclick="copyResourceUrl('${item.url}', '${safeName.replace(/'/g, "\\'")}')" class="px-2.5 py-1.5 bg-surface-card hover:bg-surface-hover border border-surface-border rounded-xl text-slate-400 hover:text-white transition-colors" title="Salin URL">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function copyResourceUrl(url, name) {
+      navigator.clipboard.writeText(url);
+      showToast(`Link ${name} berhasil disalin!`);
+    }
+
     // Inisialisasi awal
     loadProfile();
+    renderResources();
   </script>
 </body>
 </html>
